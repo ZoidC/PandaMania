@@ -1,0 +1,15 @@
+.tile {
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    transform: rotateZ(-45deg) rotateY(-60deg);
+}
+
+.character {
+	background-image: url(/resources/character.png);
+}
+
+.barrel {
+    background-image: url(/resources/barrel.png);
+}
