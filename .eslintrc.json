@@ -24,7 +24,7 @@
     "rules": {
         // error
         "brace-style": ["error", "1tbs"],
-        "indent": ["error", 4],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "semi": ["error", "always"],
         // warn
         "max-len": ["warn", { "code": 120 }],
