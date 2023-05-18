@@ -1,11 +1,15 @@
+import gsap from "gsap";
 import { move } from "./board";
+import { BARREL, CHARACTER } from "./constants";
 import { Direction } from "./types/Direction";
 import { Position } from "./types/Position";
 import { Tile } from "./types/Tile";
 
-// Board Init
+// Board JS
 
-const boardArray = [
+let characterPosition: Position;
+
+const boardArray: Tile[][] = [
     [
         Tile.Barrel,
         Tile.Barrel,
@@ -37,121 +41,109 @@ const boardArray = [
     ],
 ];
 
-const getCharacterPosition = (boardArray: number[][]): Position => {
-    let pos: Position = { x: -1, y: -1 };
-    for (let x = 0; x < boardArray.length; x++) {
-        if (boardArray[x].indexOf(Tile.Character) != -1) {
-            pos = { x, y: boardArray[x].indexOf(Tile.Character) };
-            break;
-        }
-    }
-    return pos;
-};
+const domArray: HTMLTableCellElement[][] = [];
 
-let characterPosition = getCharacterPosition(boardArray);
-
-// HTML
+// Board HTML
 
 const board = document.getElementById("board");
-const upController = document.getElementById("up");
-const rightController = document.getElementById("right");
-const downController = document.getElementById("down");
-const leftController = document.getElementById("left");
 
 const createBoard = (boardArray: number[][]) => {
+    // Character
+    const character = document.createElement("img");
+    character.classList.add(CHARACTER);
+    character.src = "/resources/" + CHARACTER + ".png";
+    board?.appendChild(character);
+
+    // Board
     const table = document.createElement("table");
     const tbody = document.createElement("tbody");
 
     for (let x = 0; x < boardArray.length; x++) {
         const row = document.createElement("tr");
+        domArray.push([]);
 
         for (let y = 0; y < boardArray[x].length; y++) {
-            const cell = document.createElement("td");
-            const tile = document.createElement("div");
+            const tile = document.createElement("td");
             tile.classList.add("tile");
 
             let specificTile;
             switch (boardArray[x][y]) {
                 case 100:
-                    specificTile = "character";
+                    characterPosition = { x, y };
                     break;
                 case 101:
-                    specificTile = "barrel";
+                    specificTile = BARREL;
                     break;
                 default:
             }
 
             if (specificTile) {
                 const img = document.createElement("img");
+                img.classList.add(specificTile);
                 img.src = "/resources/" + specificTile + ".png";
                 tile.appendChild(img);
             }
 
-            cell.appendChild(tile);
-            row.appendChild(cell);
+            row.appendChild(tile);
+            domArray[x].push(tile);
         }
 
         tbody.appendChild(row);
     }
 
     table.appendChild(tbody);
-
     board?.appendChild(table);
+
+    // Position Character
+    const characterPositionDom = domArray[characterPosition.x][characterPosition.y].getBoundingClientRect();
+    gsap.set(`.${CHARACTER}`, {
+        x: characterPositionDom.x,
+        y: characterPositionDom.y,
+    });
 };
 
 createBoard(boardArray);
 
-const listenToKeyboard = () => {
-    document.onkeydown = function (e) {
-        switch (e.code) {
-            case "ArrowUp":
-            case "KeyW":
-                characterPosition = move(Direction.Up, boardArray, characterPosition);
-                boardRefresh();
-                break;
-            case "ArrowRight":
-            case "KeyE":
-            case "KeyD":
-                characterPosition = move(Direction.Right, boardArray, characterPosition);
-                boardRefresh();
-                break;
-            case "ArrowDown":
-            case "KeyS":
-                characterPosition = move(Direction.Down, boardArray, characterPosition);
-                boardRefresh();
-                break;
-            case "ArrowLeft":
-            case "KeyQ":
-            case "KeyA":
-                characterPosition = move(Direction.Left, boardArray, characterPosition);
-                boardRefresh();
-                break;
-            default:
-        }
-    };
-};
+// Controllers
 
-listenToKeyboard();
+const upController = document.getElementById("up");
+const rightController = document.getElementById("right");
+const downController = document.getElementById("down");
+const leftController = document.getElementById("left");
+
+document.onkeydown = function (e) {
+    switch (e.code) {
+        case "ArrowUp":
+        case "KeyW":
+            characterPosition = move(Direction.Up, boardArray, domArray, characterPosition);
+            break;
+        case "ArrowRight":
+        case "KeyE":
+        case "KeyD":
+            characterPosition = move(Direction.Right, boardArray, domArray, characterPosition);
+            break;
+        case "ArrowDown":
+        case "KeyS":
+            characterPosition = move(Direction.Down, boardArray, domArray, characterPosition);
+            break;
+        case "ArrowLeft":
+        case "KeyQ":
+        case "KeyA":
+            characterPosition = move(Direction.Left, boardArray, domArray, characterPosition);
+            break;
+        default:
+    }
+};
 
 upController?.addEventListener("click", () => {
-    characterPosition = move(Direction.Up, boardArray, characterPosition);
-    boardRefresh();
+    characterPosition = move(Direction.Up, boardArray, domArray, characterPosition);
 });
 rightController?.addEventListener("click", () => {
-    characterPosition = move(Direction.Right, boardArray, characterPosition);
-    boardRefresh();
+    characterPosition = move(Direction.Right, boardArray, domArray, characterPosition);
 });
 downController?.addEventListener("click", () => {
-    characterPosition = move(Direction.Down, boardArray, characterPosition);
-    boardRefresh();
+    characterPosition = move(Direction.Down, boardArray, domArray, characterPosition);
 });
 leftController?.addEventListener("click", () => {
-    characterPosition = move(Direction.Left, boardArray, characterPosition);
-    boardRefresh();
+    characterPosition = move(Direction.Left, boardArray, domArray, characterPosition);
 });
-
-const boardRefresh = () => {
-    const table = board?.querySelector("table");
-    if (table) board?.removeChild(table);
-    createBoard(boardArray);
-};

@@ -1,8 +1,14 @@
+import gsap from "gsap";
 import { Direction } from "./types/Direction";
 import { Position } from "./types/Position";
 import { Tile } from "./types/Tile";
 
-export const move = (direction: Direction, board: number[][], currentPosition: Position): Position => {
+export const move = (
+    direction: Direction,
+    board: Tile[][],
+    dom: HTMLTableCellElement[][],
+    currentPosition: Position
+): Position => {
     const endPosition = { x: currentPosition.x, y: currentPosition.y };
     switch (direction) {
         case Direction.Up:
@@ -21,8 +27,19 @@ export const move = (direction: Direction, board: number[][], currentPosition: P
     }
 
     if (canMove(board, endPosition)) {
-        board[endPosition.x][endPosition.y] = board[currentPosition.x][currentPosition.y];
+        // Update Board JS
+        board[endPosition.x][endPosition.y] = Tile.Character;
         board[currentPosition.x][currentPosition.y] = Tile.Empty;
+
+        // Update Board HTML
+        const tableCellEndPosition = dom[endPosition.x][endPosition.y].getBoundingClientRect();
+        // Improvement : Check for a timeline gsap to not overlap each animation
+        gsap.to(".character", {
+            x: tableCellEndPosition.x,
+            y: tableCellEndPosition.y,
+            duration: 1,
+        });
+
         return endPosition;
     }
 
@@ -31,7 +48,7 @@ export const move = (direction: Direction, board: number[][], currentPosition: P
 
 const canMove = (board: number[][], endPosition: Position) => {
     try {
-        return board[endPosition.x][endPosition.y] < 10;
+        return board[endPosition.x][endPosition.y] <= Tile.Limit;
     } catch (error) {
         return false;
     }
